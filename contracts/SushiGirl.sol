@@ -9,7 +9,7 @@ import "./interfaces/IERC1271.sol";
 import "./interfaces/ISushiGirl.sol";
 import "./libraries/Signature.sol";
 
-contract SushiGirl is Ownable, ERC721("Sushi Girl", "SGIRL"), ERC721Enumerable, ISushiGirl {
+contract SushiGirl is Ownable, ERC721("Sushi Girl", unicode"(◠‿◠🍣)"), ERC721Enumerable, ISushiGirl {
     struct SushiGirlInfo {
         uint256 originPower;
         uint256 supportedLPTokenAmount;

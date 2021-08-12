@@ -37,7 +37,7 @@ describe("SushiGirl", () => {
         it("name, symbol, DOMAIN_SEPARATOR, PERMIT_TYPEHASH", async () => {
             const name = await sushiGirl.name()
             expect(name).to.eq("Sushi Girl")
-            expect(await sushiGirl.symbol()).to.eq("SGIRL")
+            expect(await sushiGirl.symbol()).to.eq("(◠‿◠🍣)")
             expect(await sushiGirl.DOMAIN_SEPARATOR()).to.eq(
                 keccak256(
                     defaultAbiCoder.encode(
