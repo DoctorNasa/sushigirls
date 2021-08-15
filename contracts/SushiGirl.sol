@@ -277,18 +277,26 @@ contract SushiGirl is Ownable, ERC721("Sushi Girl", unicode"(◠‿◠🍣)"), E
         uint256 _pid,
         uint256 _amount,
         uint256 _totalSupportedLPTokenAmount
-    ) internal returns (uint256 _accSushiPerShare) {
-        uint256 balance0 = sushi.balanceOf(address(this));
-        if (deposit) sushiMasterChef.deposit(_pid, _amount);
-        else sushiMasterChef.withdraw(_pid, _amount);
-        uint256 balance1 = sushi.balanceOf(address(this));
+    ) internal returns (uint256) {
+        uint256 reward;
         if (block.number <= sushiLastRewardBlock) {
-            return _accSushiPerShare = accSushiPerShare;
+            if (deposit) sushiMasterChef.deposit(_pid, _amount);
+            else sushiMasterChef.withdraw(_pid, _amount);
+            return accSushiPerShare;
+        } else {
+            uint256 balance0 = sushi.balanceOf(address(this));
+            if (deposit) sushiMasterChef.deposit(_pid, _amount);
+            else sushiMasterChef.withdraw(_pid, _amount);
+            uint256 balance1 = sushi.balanceOf(address(this));
+            reward = balance1 - balance0;
         }
         sushiLastRewardBlock = block.number;
-        if (_totalSupportedLPTokenAmount > 0) {
-            _accSushiPerShare = accSushiPerShare + (((balance1 - balance0) * 1e18) / _totalSupportedLPTokenAmount);
+        if (_totalSupportedLPTokenAmount > 0 && reward > 0) {
+            uint256 _accSushiPerShare = accSushiPerShare + ((reward * 1e18) / _totalSupportedLPTokenAmount);
             accSushiPerShare = _accSushiPerShare;
+            return _accSushiPerShare;
+        } else {
+            return accSushiPerShare;
         }
     }
 
