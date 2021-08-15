@@ -67,6 +67,8 @@ interface ISushiGirl is IERC721, IERC721Metadata, IERC721Enumerable {
         uint256 pid
     ) external;
 
+    function claimSushiReward(uint256 id, uint256 pid) external;
+
     function permit(
         address spender,
         uint256 id,
