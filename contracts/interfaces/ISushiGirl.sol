@@ -43,8 +43,6 @@ interface ISushiGirl is IERC721, IERC721Metadata, IERC721Enumerable {
 
     function accSushiPerShare() external view returns (uint256);
 
-    function totalSupportedLPTokenAmount() external view returns (uint256);
-
     function powerOf(uint256 id) external view returns (uint256);
 
     function support(

@@ -43,7 +43,6 @@ contract SushiGirl is Ownable, ERC721("Sushi Girl", unicode"(◠‿◠🍣)"), E
     IMasterChef public override sushiMasterChef;
     uint256 public override sushiLastRewardBlock;
     uint256 public override accSushiPerShare;
-    uint256 public override totalSupportedLPTokenAmount;
     bool private initialDeposited;
 
     constructor(IUniswapV2Pair _lpToken, IERC20 _sushi) {
@@ -101,13 +100,12 @@ contract SushiGirl is Ownable, ERC721("Sushi Girl", unicode"(◠‿◠🍣)"), E
     ) public override {
         require(ownerOf(id) == msg.sender, "SushiGirl: Forbidden");
         uint256 _supportedLPTokenAmount = sushiGirls[id].supportedLPTokenAmount;
-        uint256 _totalSupportedLPTokenAmount = totalSupportedLPTokenAmount;
 
         sushiGirls[id].supportedLPTokenAmount = _supportedLPTokenAmount + lpTokenAmount;
-        totalSupportedLPTokenAmount = _totalSupportedLPTokenAmount + lpTokenAmount;
         lpToken.transferFrom(msg.sender, address(this), lpTokenAmount);
 
         if (pid > 0) {
+            uint256 _totalSupportedLPTokenAmount = sushiMasterChef.userInfo(pid, address(this)).amount;
             uint256 _accSushiPerShare = _depositToSushiMasterChef(pid, lpTokenAmount, _totalSupportedLPTokenAmount);
             uint256 pending = (_supportedLPTokenAmount * _accSushiPerShare) / 1e18 - sushiGirls[id].sushiRewardDebt;
             if (pending > 0) safeSushiTransfer(msg.sender, pending);
@@ -137,13 +135,12 @@ contract SushiGirl is Ownable, ERC721("Sushi Girl", unicode"(◠‿◠🍣)"), E
     ) external override {
         require(ownerOf(id) == msg.sender, "SushiGirl: Forbidden");
         uint256 _supportedLPTokenAmount = sushiGirls[id].supportedLPTokenAmount;
-        uint256 _totalSupportedLPTokenAmount = totalSupportedLPTokenAmount;
 
         sushiGirls[id].supportedLPTokenAmount = _supportedLPTokenAmount - lpTokenAmount;
-        totalSupportedLPTokenAmount = _totalSupportedLPTokenAmount - lpTokenAmount;
         lpToken.transfer(msg.sender, lpTokenAmount);
 
         if (pid > 0) {
+            uint256 _totalSupportedLPTokenAmount = sushiMasterChef.userInfo(pid, address(this)).amount;
             uint256 _accSushiPerShare = _withdrawFromSushiMasterChef(pid, lpTokenAmount, _totalSupportedLPTokenAmount);
             uint256 pending = (_supportedLPTokenAmount * _accSushiPerShare) / 1e18 - sushiGirls[id].sushiRewardDebt;
             if (pending > 0) safeSushiTransfer(msg.sender, pending);
@@ -274,16 +271,17 @@ contract SushiGirl is Ownable, ERC721("Sushi Girl", unicode"(◠‿◠🍣)"), E
             return _accSushiPerShare = accSushiPerShare;
         }
         sushiLastRewardBlock = block.number;
-        _accSushiPerShare = accSushiPerShare + (((balance1 - balance0) * 1e18) / _totalSupportedLPTokenAmount);
-        accSushiPerShare = _accSushiPerShare;
+        if (_totalSupportedLPTokenAmount > 0) {
+            _accSushiPerShare = accSushiPerShare + (((balance1 - balance0) * 1e18) / _totalSupportedLPTokenAmount);
+            accSushiPerShare = _accSushiPerShare;
+        }
     }
 
     function initialDepositToSushiMasterChef(uint256 _pid) external override onlyOwner {
         require(!initialDeposited, "SushiGirl: Already deposited");
         initialDeposited = true;
         lpToken.approve(address(sushiMasterChef), type(uint256).max);
-        uint256 _totalSupportedLPTokenAmount = totalSupportedLPTokenAmount;
-        _toSushiMasterChef(true, _pid, lpToken.balanceOf(address(this)), _totalSupportedLPTokenAmount);
+        _toSushiMasterChef(true, _pid, lpToken.balanceOf(address(this)), 0);
     }
 
     function safeSushiTransfer(address _to, uint256 _amount) internal {
