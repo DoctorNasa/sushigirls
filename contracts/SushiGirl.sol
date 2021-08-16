@@ -132,7 +132,6 @@ contract SushiGirl is Ownable, ERC721("Sushi Girl", unicode"(◠‿◠🍣)"), E
         uint256 _supportedLPTokenAmount = sushiGirls[id].supportedLPTokenAmount;
 
         sushiGirls[id].supportedLPTokenAmount = _supportedLPTokenAmount - lpTokenAmount;
-        lpToken.transfer(msg.sender, lpTokenAmount);
 
         uint256 _pid = pid;
         if (_pid > 0) {
@@ -140,9 +139,10 @@ contract SushiGirl is Ownable, ERC721("Sushi Girl", unicode"(◠‿◠🍣)"), E
             uint256 _accSushiPerShare = _withdrawFromSushiMasterChef(_pid, lpTokenAmount, _totalSupportedLPTokenAmount);
             uint256 pending = (_supportedLPTokenAmount * _accSushiPerShare) / 1e18 - sushiGirls[id].sushiRewardDebt;
             if (pending > 0) safeSushiTransfer(msg.sender, pending);
-            sushiGirls[id].sushiRewardDebt = ((_supportedLPTokenAmount + lpTokenAmount) * _accSushiPerShare) / 1e18;
+            sushiGirls[id].sushiRewardDebt = ((_supportedLPTokenAmount - lpTokenAmount) * _accSushiPerShare) / 1e18;
         }
 
+        lpToken.transfer(msg.sender, lpTokenAmount);
         emit Desupport(id, lpTokenAmount);
     }
 
