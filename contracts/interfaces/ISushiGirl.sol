@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "../uniswapv2/interfaces/IUniswapV2Pair.sol";
+import "./IMasterChef.sol";
 
 interface ISushiGirl is IERC721, IERC721Metadata, IERC721Enumerable {
     event ChangeLPTokenToSushiGirlPower(uint256 value);
@@ -25,22 +26,48 @@ interface ISushiGirl is IERC721, IERC721Metadata, IERC721Enumerable {
 
     function lpTokenToSushiGirlPower() external view returns (uint256);
 
-    function sushiGirls(uint256 id) external view returns (uint256 originPower, uint256 supportedLPTokenAmount);
+    function sushiGirls(uint256 id)
+        external
+        view
+        returns (
+            uint256 originPower,
+            uint256 supportedLPTokenAmount,
+            uint256 sushiRewardDebt
+        );
+
+    function sushi() external view returns (IERC20);
+
+    function sushiMasterChef() external view returns (IMasterChef);
+
+    function sushiLastRewardBlock() external view returns (uint256);
+
+    function accSushiPerShare() external view returns (uint256);
 
     function powerOf(uint256 id) external view returns (uint256);
 
-    function support(uint256 id, uint256 lpTokenAmount) external;
+    function support(
+        uint256 id,
+        uint256 lpTokenAmount,
+        uint256 pid
+    ) external;
 
     function supportWithPermit(
         uint256 id,
         uint256 lpTokenAmount,
+        uint256 pid,
         uint256 deadline,
         uint8 v,
         bytes32 r,
         bytes32 s
     ) external;
 
-    function desupport(uint256 id, uint256 lpTokenAmount) external;
+    function desupport(
+        uint256 id,
+        uint256 lpTokenAmount,
+        uint256 pid
+    ) external;
+
+    function claimSushiReward(uint256 id, uint256 pid) external;
 
     function permit(
         address spender,
@@ -59,4 +86,8 @@ interface ISushiGirl is IERC721, IERC721Metadata, IERC721Enumerable {
         bytes32 r,
         bytes32 s
     ) external;
+
+    function setSushiMasterChef(IMasterChef _masterChef) external;
+
+    function initialDepositToSushiMasterChef(uint256 _pid) external;
 }
