@@ -24,13 +24,13 @@ const config: HardhatUserConfig = {
       },
     }],
   },
-  networks: {
+  /*networks: {
     mainnet: {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
       accounts: [process.env.ADMIN || ''],
       chainId: 1,
     },
-  },
+  },*/
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY
   },

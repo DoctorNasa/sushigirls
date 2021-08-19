@@ -4,8 +4,9 @@ import { BigNumber, constants } from "ethers";
 import { defaultAbiCoder, hexlify, keccak256, toUtf8Bytes } from "ethers/lib/utils";
 import { waffle } from "hardhat";
 import SushiGirlArtifact from "../artifacts/contracts/SushiGirl.sol/SushiGirl.json";
+import MockSushiTokenArtifact from "../artifacts/contracts/test/MockSushiToken.sol/MockSushiToken.json";
 import TestLPTokenArtifact from "../artifacts/contracts/test/TestLPToken.sol/TestLPToken.json";
-import { SushiGirl, TestLPToken } from "../typechain";
+import { MockSushiToken, SushiGirl, TestLPToken } from "../typechain";
 import { expandTo18Decimals } from "./shared/utils/number";
 import { getERC721ApprovalDigest } from "./shared/utils/standard";
 
@@ -13,6 +14,7 @@ const { deployContract } = waffle;
 
 describe("SushiGirl", () => {
     let testLPToken: TestLPToken;
+    let sushi: MockSushiToken;
     let sushiGirl: SushiGirl;
 
     const provider = waffle.provider;
@@ -26,10 +28,16 @@ describe("SushiGirl", () => {
             []
         ) as TestLPToken;
 
+        sushi = await deployContract(
+            admin,
+            MockSushiTokenArtifact,
+            []
+        ) as MockSushiToken;
+
         sushiGirl = await deployContract(
             admin,
             SushiGirlArtifact,
-            [testLPToken.address]
+            [testLPToken.address, sushi.address]
         ) as SushiGirl;
     })
 
