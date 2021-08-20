@@ -40,16 +40,14 @@ interface ISushiGirl is IERC721, IERC721Metadata, IERC721Enumerable {
     function sushiMasterChef() external view returns (IMasterChef);
 
     function pid() external view returns (uint256);
+
     function sushiLastRewardBlock() external view returns (uint256);
 
     function accSushiPerShare() external view returns (uint256);
 
     function powerOf(uint256 id) external view returns (uint256);
 
-    function support(
-        uint256 id,
-        uint256 lpTokenAmount
-    ) external;
+    function support(uint256 id, uint256 lpTokenAmount) external;
 
     function supportWithPermit(
         uint256 id,
@@ -60,12 +58,11 @@ interface ISushiGirl is IERC721, IERC721Metadata, IERC721Enumerable {
         bytes32 s
     ) external;
 
-    function desupport(
-        uint256 id,
-        uint256 lpTokenAmount
-    ) external;
+    function desupport(uint256 id, uint256 lpTokenAmount) external;
 
     function claimSushiReward(uint256 id) external;
+
+    function pendingSushiReward(uint256 id) external view returns (uint256);
 
     function permit(
         address spender,

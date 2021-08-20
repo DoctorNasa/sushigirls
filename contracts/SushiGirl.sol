@@ -160,6 +160,21 @@ contract SushiGirl is Ownable, ERC721("Sushi Girl", unicode"(◠‿◠🍣)"), E
         sushiGirls[id].sushiRewardDebt = (_supportedLPTokenAmount * _accSushiPerShare) / 1e18;
     }
 
+    function pendingSushiReward(uint256 id) external view override returns (uint256) {
+        uint256 _pid = pid;
+        if (_pid == 0) return 0;
+        uint256 _supportedLPTokenAmount = sushiGirls[id].supportedLPTokenAmount;
+        uint256 _totalSupportedLPTokenAmount = sushiMasterChef.userInfo(_pid, address(this)).amount;
+
+        uint256 _accSushiPerShare = accSushiPerShare;
+        if (block.number > sushiLastRewardBlock && _totalSupportedLPTokenAmount != 0) {
+            uint256 reward = sushiMasterChef.pendingSushi(pid, address(this));
+            _accSushiPerShare += ((reward * 1e18) / _totalSupportedLPTokenAmount);
+        }
+
+        return (_supportedLPTokenAmount * _accSushiPerShare) / 1e18 - sushiGirls[id].sushiRewardDebt;
+    }
+
     function permit(
         address spender,
         uint256 id,
