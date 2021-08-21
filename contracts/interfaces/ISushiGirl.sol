@@ -83,6 +83,4 @@ interface ISushiGirl is IERC721, IERC721Metadata, IERC721Enumerable {
     ) external;
 
     function setSushiMasterChef(IMasterChef _masterChef, uint256 pid) external;
-
-    function initialDepositToSushiMasterChef() external;
 }

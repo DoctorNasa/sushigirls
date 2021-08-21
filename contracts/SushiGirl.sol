@@ -262,9 +262,27 @@ contract SushiGirl is Ownable, ERC721("Sushi Girl", unicode"(◠‿◠🍣)"), E
     }
 
     function setSushiMasterChef(IMasterChef _masterChef, uint256 _pid) external override onlyOwner {
-        require(address(IMasterChef(_masterChef).poolInfo(_pid).lpToken) == address(lpToken), "SushiGirl: Invalid pid");
-        sushiMasterChef = _masterChef;
-        pid = _pid;
+        require(address(_masterChef.poolInfo(_pid).lpToken) == address(lpToken), "SushiGirl: Invalid pid");
+        if (!initialDeposited) {
+            initialDeposited = true;
+            lpToken.approve(address(_masterChef), type(uint256).max);
+
+            sushiMasterChef = _masterChef;
+            pid = _pid;
+            _depositToSushiMasterChef(_pid, lpToken.balanceOf(address(this)), 0);
+        } else {
+            IMasterChef oldChef = sushiMasterChef;
+            uint256 oldpid = pid;
+            _withdrawFromSushiMasterChef(oldpid, oldChef.userInfo(oldpid, address(this)).amount, 0);
+            if (_masterChef != oldChef) {
+                lpToken.approve(address(oldChef), 0);
+                lpToken.approve(address(_masterChef), type(uint256).max);
+            }
+
+            sushiMasterChef = _masterChef;
+            pid = _pid;
+            _depositToSushiMasterChef(_pid, lpToken.balanceOf(address(this)), 0);
+        }
     }
 
     function _depositToSushiMasterChef(
@@ -309,13 +327,6 @@ contract SushiGirl is Ownable, ERC721("Sushi Girl", unicode"(◠‿◠🍣)"), E
         } else {
             return accSushiPerShare;
         }
-    }
-
-    function initialDepositToSushiMasterChef() external override onlyOwner {
-        require(!initialDeposited, "SushiGirl: Already deposited");
-        initialDeposited = true;
-        lpToken.approve(address(sushiMasterChef), type(uint256).max);
-        _toSushiMasterChef(true, pid, lpToken.balanceOf(address(this)), 0);
     }
 
     function safeSushiTransfer(address _to, uint256 _amount) internal {
