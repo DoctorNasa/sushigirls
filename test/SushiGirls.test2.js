@@ -351,7 +351,7 @@ describe("SushiGirls interact with MasterChef", function () {
         expect(await sgirl.powerOf(4)).to.be.equal(10);
     });
 
-    it.only("mintBatch test2", async function () {
+    it("mintBatch test2", async function () {
         const { sgirl } = await setupTest();
 
         expect(await sgirl.totalSupply()).to.be.equal(3);

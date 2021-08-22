@@ -95,7 +95,7 @@ describe("SushiGirls", () => {
             const power1 = BigNumber.from(12);
             const power2 = BigNumber.from(15);
 
-            await expect(sushiGirls.batchMint([power1, power2]))
+            await expect(sushiGirls.mintBatch([power1, power2], 2))
                 .to.emit(sushiGirls, "Transfer")
                 .withArgs(constants.AddressZero, admin.address, id1)
                 .to.emit(sushiGirls, "Transfer")
