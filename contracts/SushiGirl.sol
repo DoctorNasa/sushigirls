@@ -10,7 +10,7 @@ import "./interfaces/ISushiGirl.sol";
 import "./libraries/Signature.sol";
 import "./interfaces/IMasterChef.sol";
 
-contract SushiGirl is Ownable, ERC721("Sushi Girl", unicode"(◠‿◠🍣)"), ERC721Enumerable, ISushiGirl {
+contract SushiGirl is Ownable, ERC721("MaidCoin Sushi Girls", "SUSHIGIRL"), ERC721Enumerable, ISushiGirl {
     struct SushiGirlInfo {
         uint256 originPower;
         uint256 supportedLPTokenAmount;
@@ -51,14 +51,14 @@ contract SushiGirl is Ownable, ERC721("Sushi Girl", unicode"(◠‿◠🍣)"), E
         sushi = _sushi;
 
         _CACHED_CHAIN_ID = block.chainid;
-        _HASHED_NAME = keccak256(bytes("Sushi Girl"));
+        _HASHED_NAME = keccak256(bytes("MaidCoin Sushi Girls"));
         _HASHED_VERSION = keccak256(bytes("1"));
         _TYPE_HASH = keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
 
         _CACHED_DOMAIN_SEPARATOR = keccak256(
             abi.encode(
                 keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
-                keccak256(bytes("Sushi Girl")),
+                keccak256(bytes("MaidCoin Sushi Girls")),
                 keccak256(bytes("1")),
                 block.chainid,
                 address(this)
@@ -67,7 +67,7 @@ contract SushiGirl is Ownable, ERC721("Sushi Girl", unicode"(◠‿◠🍣)"), E
     }
 
     function _baseURI() internal pure override returns (string memory) {
-        return "https://api.maidcoin.org/sushigirl/";
+        return "https://api.maidcoin.org/sushigirls/";
     }
 
     function DOMAIN_SEPARATOR() public view override returns (bytes32) {
@@ -83,10 +83,17 @@ contract SushiGirl is Ownable, ERC721("Sushi Girl", unicode"(◠‿◠🍣)"), E
         emit ChangeLPTokenToSushiGirlPower(value);
     }
 
-    function mint(uint256 power) external onlyOwner returns (uint256 id) {
+    function mint(uint256 power) public onlyOwner returns (uint256 id) {
         id = sushiGirls.length;
         sushiGirls.push(SushiGirlInfo({originPower: power, supportedLPTokenAmount: 0, sushiRewardDebt: 0}));
         _mint(msg.sender, id);
+    }
+
+    function bulkMint(uint256[] calldata powers) external onlyOwner {
+        uint256 length = powers.length;
+        for (uint256 i = 0; i < length; i += 1) {
+            mint(powers[i]);
+        }
     }
 
     function powerOf(uint256 id) external view override returns (uint256) {

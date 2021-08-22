@@ -44,8 +44,8 @@ describe("SushiGirl", () => {
     context("new SushiGirl", async () => {
         it("name, symbol, DOMAIN_SEPARATOR, PERMIT_TYPEHASH", async () => {
             const name = await sushiGirl.name()
-            expect(name).to.eq("Sushi Girl")
-            expect(await sushiGirl.symbol()).to.eq("(◠‿◠🍣)")
+            expect(name).to.eq("MaidCoin Sushi Girls")
+            expect(await sushiGirl.symbol()).to.eq("SUSHIGIRL")
             expect(await sushiGirl.DOMAIN_SEPARATOR()).to.eq(
                 keccak256(
                     defaultAbiCoder.encode(
@@ -85,7 +85,7 @@ describe("SushiGirl", () => {
                 .withArgs(constants.AddressZero, admin.address, id)
             expect(await sushiGirl.powerOf(id)).to.eq(power)
             expect(await sushiGirl.totalSupply()).to.eq(BigNumber.from(1))
-            expect(await sushiGirl.tokenURI(id)).to.eq(`https://api.maidcoin.org/sushigirl/${id}`)
+            expect(await sushiGirl.tokenURI(id)).to.eq(`https://api.maidcoin.org/sushigirls/${id}`)
         })
 
         it("support, powerOf", async () => {
