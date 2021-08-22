@@ -6,11 +6,11 @@ import "./libraries/ERC721.sol";
 import "./libraries/ERC721Enumerable.sol";
 import "./uniswapv2/interfaces/IUniswapV2Pair.sol";
 import "./interfaces/IERC1271.sol";
-import "./interfaces/ISushiGirl.sol";
+import "./interfaces/ISushiGirls.sol";
 import "./libraries/Signature.sol";
 import "./interfaces/IMasterChef.sol";
 
-contract SushiGirl is Ownable, ERC721("MaidCoin Sushi Girls", "SUSHIGIRL"), ERC721Enumerable, ISushiGirl {
+contract SushiGirls is Ownable, ERC721("MaidCoin Sushi Girls", "SUSHIGIRLS"), ERC721Enumerable, ISushiGirls {
     struct SushiGirlInfo {
         uint256 originPower;
         uint256 supportedLPTokenAmount;
@@ -83,16 +83,18 @@ contract SushiGirl is Ownable, ERC721("MaidCoin Sushi Girls", "SUSHIGIRL"), ERC7
         emit ChangeLPTokenToSushiGirlPower(value);
     }
 
-    function mint(uint256 power) public onlyOwner returns (uint256 id) {
+    function mint(uint256 power) external onlyOwner returns (uint256 id) {
         id = sushiGirls.length;
         sushiGirls.push(SushiGirlInfo({originPower: power, supportedLPTokenAmount: 0, sushiRewardDebt: 0}));
         _mint(msg.sender, id);
     }
 
-    function batchMint(uint256[] calldata powers) external onlyOwner {
-        uint256 length = powers.length;
-        for (uint256 i = 0; i < length; i += 1) {
-            mint(powers[i]);
+    function mintBatch(uint256[] calldata powers, uint256 amounts) external onlyOwner {
+        require(powers.length == amounts, "SushiGirls: Invalid parameters");
+        uint256 from = sushiGirls.length;
+        for (uint256 i = 0; i < amounts; i += 1) {
+            sushiGirls.push(SushiGirlInfo({originPower: powers[i], supportedLPTokenAmount: 0, sushiRewardDebt: 0}));
+            _mint(msg.sender, (i + from));
         }
     }
 
@@ -102,8 +104,8 @@ contract SushiGirl is Ownable, ERC721("MaidCoin Sushi Girls", "SUSHIGIRL"), ERC7
     }
 
     function support(uint256 id, uint256 lpTokenAmount) public override {
-        require(ownerOf(id) == msg.sender, "SushiGirl: Forbidden");
-        require(lpTokenAmount > 0, "SushiGirl: Invalid lpTokenAmount");
+        require(ownerOf(id) == msg.sender, "SushiGirls: Forbidden");
+        require(lpTokenAmount > 0, "SushiGirls: Invalid lpTokenAmount");
         uint256 _supportedLPTokenAmount = sushiGirls[id].supportedLPTokenAmount;
 
         sushiGirls[id].supportedLPTokenAmount = _supportedLPTokenAmount + lpTokenAmount;
@@ -134,8 +136,8 @@ contract SushiGirl is Ownable, ERC721("MaidCoin Sushi Girls", "SUSHIGIRL"), ERC7
     }
 
     function desupport(uint256 id, uint256 lpTokenAmount) external override {
-        require(ownerOf(id) == msg.sender, "SushiGirl: Forbidden");
-        require(lpTokenAmount > 0, "SushiGirl: Invalid lpTokenAmount");
+        require(ownerOf(id) == msg.sender, "SushiGirls: Forbidden");
+        require(lpTokenAmount > 0, "SushiGirls: Invalid lpTokenAmount");
         uint256 _supportedLPTokenAmount = sushiGirls[id].supportedLPTokenAmount;
 
         sushiGirls[id].supportedLPTokenAmount = _supportedLPTokenAmount - lpTokenAmount;
@@ -154,15 +156,15 @@ contract SushiGirl is Ownable, ERC721("MaidCoin Sushi Girls", "SUSHIGIRL"), ERC7
     }
 
     function claimSushiReward(uint256 id) public override {
-        require(ownerOf(id) == msg.sender, "SushiGirl: Forbidden");
+        require(ownerOf(id) == msg.sender, "SushiGirls: Forbidden");
         uint256 _pid = pid;
-        require(_pid > 0, "SushiGirl: Unclaimable");
+        require(_pid > 0, "SushiGirls: Unclaimable");
         uint256 _supportedLPTokenAmount = sushiGirls[id].supportedLPTokenAmount;
 
         uint256 _totalSupportedLPTokenAmount = sushiMasterChef.userInfo(_pid, address(this)).amount;
         uint256 _accSushiPerShare = _depositToSushiMasterChef(_pid, 0, _totalSupportedLPTokenAmount);
         uint256 pending = (_supportedLPTokenAmount * _accSushiPerShare) / 1e18 - sushiGirls[id].sushiRewardDebt;
-        require(pending > 0, "SushiGirl: Nothing can be claimed");
+        require(pending > 0, "SushiGirls: Nothing can be claimed");
         safeSushiTransfer(msg.sender, pending);
         sushiGirls[id].sushiRewardDebt = (_supportedLPTokenAmount * _accSushiPerShare) / 1e18;
     }
@@ -190,7 +192,7 @@ contract SushiGirl is Ownable, ERC721("MaidCoin Sushi Girls", "SUSHIGIRL"), ERC7
         bytes32 r,
         bytes32 s
     ) external override {
-        require(block.timestamp <= deadline, "SushiGirl: Expired deadline");
+        require(block.timestamp <= deadline, "SushiGirls: Expired deadline");
         bytes32 _DOMAIN_SEPARATOR = DOMAIN_SEPARATOR();
 
         bytes32 digest = keccak256(
@@ -203,16 +205,16 @@ contract SushiGirl is Ownable, ERC721("MaidCoin Sushi Girls", "SUSHIGIRL"), ERC7
         nonces[id] += 1;
 
         address owner = ownerOf(id);
-        require(spender != owner, "SushiGirl: Invalid spender");
+        require(spender != owner, "SushiGirls: Invalid spender");
 
         if (Address.isContract(owner)) {
             require(
                 IERC1271(owner).isValidSignature(digest, abi.encodePacked(r, s, v)) == 0x1626ba7e,
-                "SushiGirl: Unauthorized"
+                "SushiGirls: Unauthorized"
             );
         } else {
             address recoveredAddress = Signature.recover(digest, v, r, s);
-            require(recoveredAddress == owner, "SushiGirl: Unauthorized");
+            require(recoveredAddress == owner, "SushiGirls: Unauthorized");
         }
 
         _approve(spender, id);
@@ -226,7 +228,7 @@ contract SushiGirl is Ownable, ERC721("MaidCoin Sushi Girls", "SUSHIGIRL"), ERC7
         bytes32 r,
         bytes32 s
     ) external override {
-        require(block.timestamp <= deadline, "SushiGirl: Expired deadline");
+        require(block.timestamp <= deadline, "SushiGirls: Expired deadline");
         bytes32 _DOMAIN_SEPARATOR = DOMAIN_SEPARATOR();
 
         bytes32 digest = keccak256(
@@ -241,11 +243,11 @@ contract SushiGirl is Ownable, ERC721("MaidCoin Sushi Girls", "SUSHIGIRL"), ERC7
         if (Address.isContract(owner)) {
             require(
                 IERC1271(owner).isValidSignature(digest, abi.encodePacked(r, s, v)) == 0x1626ba7e,
-                "SushiGirl: Unauthorized"
+                "SushiGirls: Unauthorized"
             );
         } else {
             address recoveredAddress = Signature.recover(digest, v, r, s);
-            require(recoveredAddress == owner, "SushiGirl: Unauthorized");
+            require(recoveredAddress == owner, "SushiGirls: Unauthorized");
         }
 
         _setApprovalForAll(owner, spender, true);
@@ -269,7 +271,7 @@ contract SushiGirl is Ownable, ERC721("MaidCoin Sushi Girls", "SUSHIGIRL"), ERC7
     }
 
     function setSushiMasterChef(IMasterChef _masterChef, uint256 _pid) external override onlyOwner {
-        require(address(_masterChef.poolInfo(_pid).lpToken) == address(lpToken), "SushiGirl: Invalid pid");
+        require(address(_masterChef.poolInfo(_pid).lpToken) == address(lpToken), "SushiGirls: Invalid pid");
         if (!initialDeposited) {
             initialDeposited = true;
             lpToken.approve(address(_masterChef), type(uint256).max);

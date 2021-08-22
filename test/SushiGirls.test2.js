@@ -31,8 +31,8 @@ const setupTest = async () => {
     const mc = await MockMasterChef.deploy(sushi.address, deployer.address, INITIAL_REWARD_PER_BLOCK, 0, 0);
     await mine();
 
-    const SushiGirl = await ethers.getContractFactory("SushiGirl");
-    const sgirl = await SushiGirl.deploy(lpToken.address, sushi.address);
+    const SushiGirls = await ethers.getContractFactory("SushiGirls");
+    const sgirl = await SushiGirls.deploy(lpToken.address, sushi.address);
     await mine();
 
     await sgirl.mint(1);
@@ -75,7 +75,7 @@ const setupTest = async () => {
     };
 };
 
-describe("SushiGirl interact with MasterChef", function () {
+describe("SushiGirls interact with MasterChef", function () {
     beforeEach(async function () {
         await ethers.provider.send("hardhat_reset", []);
     });
@@ -296,8 +296,8 @@ describe("SushiGirl interact with MasterChef", function () {
         expect(await sgirl.pendingSushiReward(0)).to.be.equal(0);
         expect(await sgirl.pendingSushiReward(1)).to.be.equal(0);
 
-        await expect(sgirl.connect(alice).claimSushiReward(0)).to.be.revertedWith("SushiGirl: Nothing can be claimed");
-        await expect(sgirl.connect(bob).claimSushiReward(1)).to.be.revertedWith("SushiGirl: Nothing can be claimed");
+        await expect(sgirl.connect(alice).claimSushiReward(0)).to.be.revertedWith("SushiGirls: Nothing can be claimed");
+        await expect(sgirl.connect(bob).claimSushiReward(1)).to.be.revertedWith("SushiGirls: Nothing can be claimed");
 
         expect((await mc.userInfo(2, sgirl.address)).amount).to.be.equal(1000);
         expect((await mc.userInfo(3, sgirl.address)).amount).to.be.equal(0);
@@ -326,5 +326,48 @@ describe("SushiGirl interact with MasterChef", function () {
         await expect(() => sgirl.connect(alice).claimSushiReward(0)).to.changeTokenBalance(sushi, alice, r4);
         await expect(() => sgirl.connect(bob).claimSushiReward(1)).to.changeTokenBalance(sushi, bob, r5);
         await expect(() => sgirl.connect(carol).claimSushiReward(2)).to.changeTokenBalance(sushi, carol, r6);
+    });
+
+    it("mintBatch test1", async function () {
+        const TestLPToken = await ethers.getContractFactory("TestLPToken");
+        const token = await TestLPToken.deploy();
+    
+        const SushiGirls = await ethers.getContractFactory("SushiGirls");
+        const sgirl = await SushiGirls.deploy(token.address, token.address);
+        await mine();
+
+        await expect(sgirl.mintBatch([1,2,3], 2)).to.be.revertedWith("SushiGirls: Invalid parameters");
+
+        expect(await sgirl.totalSupply()).to.be.equal(0);
+        
+        await sgirl.mintBatch([2,4,6,8,10],5);
+
+        expect(await sgirl.totalSupply()).to.be.equal(5);
+        
+        expect(await sgirl.powerOf(0)).to.be.equal(2);
+        expect(await sgirl.powerOf(1)).to.be.equal(4);
+        expect(await sgirl.powerOf(2)).to.be.equal(6);
+        expect(await sgirl.powerOf(3)).to.be.equal(8);
+        expect(await sgirl.powerOf(4)).to.be.equal(10);
+    });
+
+    it.only("mintBatch test2", async function () {
+        const { sgirl } = await setupTest();
+
+        expect(await sgirl.totalSupply()).to.be.equal(3);
+        
+        await sgirl.mintBatch([12,14,16,18,10],5);
+
+        expect(await sgirl.totalSupply()).to.be.equal(8);
+        
+        expect(await sgirl.powerOf(0)).to.be.equal(1);
+        expect(await sgirl.powerOf(1)).to.be.equal(2);
+        expect(await sgirl.powerOf(2)).to.be.equal(3);
+        
+        expect(await sgirl.powerOf(3)).to.be.equal(12);
+        expect(await sgirl.powerOf(4)).to.be.equal(14);
+        expect(await sgirl.powerOf(5)).to.be.equal(16);
+        expect(await sgirl.powerOf(6)).to.be.equal(18);
+        expect(await sgirl.powerOf(7)).to.be.equal(10);
     });
 });

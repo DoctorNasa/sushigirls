@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "../uniswapv2/interfaces/IUniswapV2Pair.sol";
 import "./IMasterChef.sol";
 
-interface ISushiGirl is IERC721, IERC721Metadata, IERC721Enumerable {
+interface ISushiGirls is IERC721, IERC721Metadata, IERC721Enumerable {
     event ChangeLPTokenToSushiGirlPower(uint256 value);
     event Support(uint256 indexed id, uint256 lpTokenAmount);
     event Desupport(uint256 indexed id, uint256 lpTokenAmount);
