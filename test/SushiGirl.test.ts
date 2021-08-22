@@ -88,6 +88,28 @@ describe("SushiGirl", () => {
             expect(await sushiGirl.tokenURI(id)).to.eq(`https://api.maidcoin.org/sushigirls/${id}`)
         })
 
+        it("batch mint", async () => {
+
+            const id1 = BigNumber.from(0);
+            const id2 = BigNumber.from(1);
+            const power1 = BigNumber.from(12);
+            const power2 = BigNumber.from(15);
+
+            await expect(sushiGirl.batchMint([power1, power2]))
+                .to.emit(sushiGirl, "Transfer")
+                .withArgs(constants.AddressZero, admin.address, id1)
+                .to.emit(sushiGirl, "Transfer")
+                .withArgs(constants.AddressZero, admin.address, id2)
+
+            expect(await sushiGirl.powerOf(id1)).to.eq(power1)
+            expect(await sushiGirl.totalSupply()).to.eq(BigNumber.from(2))
+            expect(await sushiGirl.tokenURI(id1)).to.eq(`https://api.maidcoin.org/sushigirls/${id1}`)
+
+            expect(await sushiGirl.powerOf(id2)).to.eq(power2)
+            expect(await sushiGirl.totalSupply()).to.eq(BigNumber.from(2))
+            expect(await sushiGirl.tokenURI(id2)).to.eq(`https://api.maidcoin.org/sushigirls/${id2}`)
+        })
+
         it("support, powerOf", async () => {
 
             const id = BigNumber.from(0);

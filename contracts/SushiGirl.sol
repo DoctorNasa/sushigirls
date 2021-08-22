@@ -89,7 +89,7 @@ contract SushiGirl is Ownable, ERC721("MaidCoin Sushi Girls", "SUSHIGIRL"), ERC7
         _mint(msg.sender, id);
     }
 
-    function bulkMint(uint256[] calldata powers) external onlyOwner {
+    function batchMint(uint256[] calldata powers) external onlyOwner {
         uint256 length = powers.length;
         for (uint256 i = 0; i < length; i += 1) {
             mint(powers[i]);
